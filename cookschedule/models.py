@@ -29,13 +29,18 @@ def score() -> Dict[str, float]:
     return scores
 
 
-# add to schedule if the date + meal combination is new, otherwise
-# modify existing entry. Return True on success, False on failure.
+# utility for combining date and meal to create datetime for a meal
+def get_time(day: date, meal: timedelta) -> datetime:
+    if meal not in [breakfast, lunch, dinner]:
+        raise Exception(str(meal) + " is not one of breakfast/lunch/dinner.")
+    return datetime(year=day.year, month=day.month, day=day.day) + meal
+
+
+# add to schedule if the get_time(date, meal) combination is new,
+# otherwise modify existing entry.
 def add(day: date, meal: timedelta,
         cooks: List[str], eaters: List[str], note, cancelled=False):
-    if meal not in [breakfast, lunch, dinner]:
-        return False
-    time = day + meal
+    time = get_time(day, meal)
     try:
         schedule = Schedule.objects.get(time=time)
     except Schedule.DoesNotExist:
@@ -54,12 +59,9 @@ def add(day: date, meal: timedelta,
 
 
 # cancel the schedule specified by date and meal, return False if
-# meal is not one of breakfast/lunch/dinner or the entry does not
-# exist, otherwise True
+# the entry does not exist, otherwise True
 def delete(day: date, meal: timedelta):
-    if meal not in [breakfast, lunch, dinner]:
-        return False
-    time = day + meal
+    time = get_time(day, meal)
     try:
         schedule = Schedule.objects.get(time=time)
     except Schedule.DoesNotExist:
