@@ -9,6 +9,7 @@ from typing import List, Dict
 breakfast = timedelta(hours=8, minutes=30)
 lunch = timedelta(hours=12, minutes=30)
 dinner = timedelta(hours=18, minutes=30)
+meal_dict = {breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner"}
 
 
 # get score for every participant, counting only history meal
@@ -39,7 +40,7 @@ def get_time(day: date, meal: timedelta) -> datetime:
 # add to schedule if the get_time(date, meal) combination is new,
 # otherwise modify existing entry.
 def add(day: date, meal: timedelta,
-        cooks: List[str], eaters: List[str], note, cancelled=False):
+        cooks: List[str], eaters: List[str], note="", cancelled=False):
     time = get_time(day, meal)
     try:
         schedule = Schedule.objects.get(time=time)
@@ -83,6 +84,11 @@ def hard_delete(day: date, meal: timedelta):
     else:
         schedule.delete()
         return True
+
+
+# 删库跑路
+def delete_all():
+    Schedule.objects.all().delete()
 
 
 # get history schedules in descending order of time

@@ -102,6 +102,12 @@ class ScheduleModelTests(TestCase):
         self.assertEquals(len(Cook.objects.filter(time=time)), 0)
         self.assertEquals(len(Eat.objects.filter(time=time)), 0)
 
+    def test_delete_all(self):
+        delete_all()
+        self.assertEquals(len(Schedule.objects.all()), 0)
+        self.assertEquals(len(Cook.objects.all()), 0)
+        self.assertEquals(len(Eat.objects.all()), 0)
+
     def test_get_score(self):
         scores = score()
         self.assertEquals(scores,
