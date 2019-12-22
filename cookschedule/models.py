@@ -59,7 +59,7 @@ def add(day: date, meal: timedelta,
 
 
 # cancel the schedule specified by date and meal, return False if
-# the entry does not exist, otherwise True
+# the entry does not exist, otherwise True (do not really delete record)
 def delete(day: date, meal: timedelta):
     time = get_time(day, meal)
     try:
@@ -69,6 +69,19 @@ def delete(day: date, meal: timedelta):
     else:
         schedule.cancelled = True
         schedule.save()
+        return True
+
+
+# delete entry from database, return false if the entry does not exist,
+# true otherwise
+def hard_delete(day: date, meal: timedelta):
+    time = get_time(day, meal)
+    try:
+        schedule = Schedule.objects.get(time=time)
+    except Schedule.DoesNotExist:
+        return False
+    else:
+        schedule.delete()
         return True
 
 

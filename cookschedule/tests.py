@@ -69,10 +69,11 @@ class ScheduleModelTests(TestCase):
         add(day=day,
             meal=lunch,
             cooks=[darcy],
-            eaters=[darcy, leo],
+            eaters=[leo],
             note='new schedule')
         schedule = Schedule.objects.get(time=get_time(day, lunch))
         self.assertEquals(schedule.cooks(), [darcy])
+        self.assertEquals(schedule.eaters(), [leo])
         self.assertEquals(schedule.note, 'new schedule')
 
     def test_modify_existent_schedule(self):
@@ -88,6 +89,18 @@ class ScheduleModelTests(TestCase):
     def test_delete_schedule(self):
         delete(self.today + timedelta(days=1), breakfast)
         self.assertEquals(len(plan()), 0)
+
+    def test_hard_delete(self):
+        hard_delete(self.today + timedelta(days=-1), dinner)
+        time = get_time(self.today + timedelta(days=-1), dinner)
+        try:
+            Schedule.objects.get(time=time)
+        except Schedule.DoesNotExist:
+            pass
+        else:
+            self.fail()
+        self.assertEquals(len(Cook.objects.filter(time=time)), 0)
+        self.assertEquals(len(Eat.objects.filter(time=time)), 0)
 
     def test_get_score(self):
         scores = score()
