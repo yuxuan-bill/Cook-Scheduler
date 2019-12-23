@@ -66,22 +66,22 @@ class ScheduleModelTests(TestCase):
 
     def test_add_new_schedule(self):
         day = datetime(year=2000, month=1, day=1).date()
-        add(day=day,
-            meal=lunch,
-            cooks=[darcy],
-            eaters=[leo],
-            note='new schedule')
+        update(day=day,
+               meal=lunch,
+               cooks=[darcy],
+               eaters=[leo],
+               notes='new schedule')
         schedule = Schedule.objects.get(time=get_time(day, lunch))
         self.assertEquals(schedule.cooks(), [darcy])
         self.assertEquals(schedule.eaters(), [leo])
         self.assertEquals(schedule.note, 'new schedule')
 
     def test_modify_existent_schedule(self):
-        add(day=self.today,
-            meal=lunch,
-            cooks=[darcy, bill, leo],
-            eaters=participants,
-            note='restore schedule')
+        update(day=self.today,
+               meal=lunch,
+               cooks=[darcy, bill, leo],
+               eaters=participants,
+               notes='restore schedule')
         schedule = Schedule.objects.get(time=get_time(self.today, lunch))
         self.assertEquals(schedule.cancelled, False)
         self.assertEquals(schedule.cooks(), [darcy, bill, leo])

@@ -9,7 +9,8 @@ from typing import List, Dict
 breakfast = timedelta(hours=8, minutes=30)
 lunch = timedelta(hours=12, minutes=30)
 dinner = timedelta(hours=18, minutes=30)
-meal_dict = {breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner"}
+meal_dict = {breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner",
+             "Breakfast": breakfast, "Lunch": lunch, "Dinner": dinner}
 
 
 # get score for every participant, counting only history meal
@@ -39,20 +40,20 @@ def get_time(day: date, meal: timedelta) -> datetime:
 
 # add to schedule if the get_time(date, meal) combination is new,
 # otherwise modify existing entry.
-def add(day: date, meal: timedelta,
-        cooks: List[str], eaters: List[str], note="", cancelled=False):
+def update(day: date, meal: timedelta,
+           cooks: List[str], eaters: List[str], notes="", cancelled=False):
     time = get_time(day, meal)
     try:
         schedule = Schedule.objects.get(time=time)
     except Schedule.DoesNotExist:
-        schedule = Schedule(time=time, cancelled=cancelled, note=note)
+        schedule = Schedule(time=time, cancelled=cancelled, note=notes)
         schedule.save()
         schedule.set_cooks(cooks)
         schedule.set_eaters(eaters)
         return True
     else:
         schedule.time = time
-        schedule.note = note
+        schedule.note = notes
         schedule.cancelled = cancelled
         schedule.set_cooks(cooks)
         schedule.set_eaters(eaters)

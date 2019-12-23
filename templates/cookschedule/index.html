@@ -12,6 +12,33 @@
 </head>
 <body><div class="ml-1 mr-1">
 
+    {% if messages %}
+        {% for message in messages %}
+            {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+                <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
+                <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
+                    Deleted schedule.
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% else %}
+                <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
     <table class="table table-striped mt-1">
         <thead>
             <tr>
@@ -79,7 +106,9 @@
             <li class="list-group-item text-wrap">
                 Cooks: {{ info.cooks }} <br>
                 Eaters: {{ info.eaters }} <br>
-                Notes: {{ info.notes }} <br>
+                {% if info.notes %}
+                    Notes: {{ info.notes }} <br>
+                {% endif %}
                 <i style="color:darkgrey">{{ info.meal }} on {{ info.date }}</i>
 
                 <form  action="{% url 'cookschedule:index' %}" method="post">
@@ -102,7 +131,7 @@
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
-                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                    <button type="submit" name="delete" value="{{ info.time }}" class="btn btn-danger">Delete</button>
                                 </div>
                             </div>
                         </div>
@@ -119,7 +148,9 @@
             <li class="list-group-item text-wrap">
                 Cooks: {{ info.cooks }} <br>
                 Eaters: {{ info.eaters }} <br>
-                Notes: {{ info.notes }} <br>
+                {% if info.notes %}
+                    Notes: {{ info.notes }} <br>
+                {% endif %}
                 <i style="color:darkgrey">{{ info.meal }} on {{ info.date }}</i>
 
                 <form  action="{% url 'cookschedule:index' %}" method="post">
@@ -142,7 +173,7 @@
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
-                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                    <button type="submit" name="delete" value="{{ info.time }}" class="btn btn-danger">Delete</button>
                                 </div>
                             </div>
                         </div>
