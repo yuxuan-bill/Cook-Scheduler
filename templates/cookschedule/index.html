@@ -32,7 +32,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-            {% else %}
+            {% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
                 <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
                     {{ message }}
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -98,7 +98,7 @@
             <textarea class="form-control" name="notes" rows="3" placeholder="To eat or not to eat, that is the question..."></textarea>
         </div>
 
-        <button type="submit" class="btn btn-outline-secondary mb-5 btn-block">Update</button>
+        <button type="submit" class="btn btn-outline-secondary mb-5 btn-block" name="update">Update</button>
 
     </form>
 

@@ -1,7 +1,8 @@
 from django.shortcuts import render
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 from django.contrib import messages
+
 from .models import *
 
 
@@ -11,34 +12,10 @@ from .models import *
 def index(request):
 
     if 'delete' in request.POST:
-        time = datetime.strptime(request.POST['delete'], '%Y-%m-%d %H:%M:%S')
-        meal = time.time()
-        delete(time.date(), timedelta(hours=meal.hour, minutes=meal.minute))
-        messages.add_message(request, messages.WARNING, str(time))
-        return HttpResponseRedirect(reverse('cookschedule:index'))
+        return handle_delete(request)
 
-    if 'date' in request.POST:
-        if 'cooks' not in request.POST:
-            level = messages.ERROR
-            message = "You didn't set any one to cook."
-        elif 'eaters' not in request.POST:
-            level = messages.ERROR
-            message = "You didn't set any one to eat."
-        elif len(request.POST['meal']) == 0:
-            level = messages.ERROR
-            message = "You didn't set the meal to update for."
-        else:
-            update(day=datetime.strptime(
-                request.POST['date'], '%Y-%m-%d').date(),
-                   meal=meal_dict[request.POST['meal']],
-                   cooks=request.POST.getlist('cooks'),
-                   eaters=request.POST.getlist('eaters'),
-                   notes=request.POST['notes']
-                   )
-            level = messages.SUCCESS
-            message = "Update successful."
-        messages.add_message(request, level, message)
-        return HttpResponseRedirect(reverse('cookschedule:index'))
+    if 'update' in request.POST:
+        return handle_update(request)
 
     scores = score()
     for people in scores:
@@ -48,7 +25,44 @@ def index(request):
                'history': process_schedules(history()),
                'today': str(datetime.today().date()),
                }
+
+    # TODO: add pre-entered info, used when user click edit button
+    if request.GET:
+        pass
+
     return render(request, 'cookschedule/index.html', context)
+
+
+def handle_delete(request):
+    time = datetime.strptime(request.POST['delete'], '%Y-%m-%d %H:%M:%S')
+    meal = time.time()
+    delete(time.date(), timedelta(hours=meal.hour, minutes=meal.minute))
+    messages.add_message(request, messages.WARNING, str(time))
+    return HttpResponseRedirect(reverse('cookschedule:index'))
+
+
+def handle_update(request):
+    if 'cooks' not in request.POST:
+        level = messages.ERROR
+        message = "You didn't set any one to cook."
+    elif 'eaters' not in request.POST:
+        level = messages.ERROR
+        message = "You didn't set any one to eat."
+    elif len(request.POST['meal']) == 0:
+        level = messages.ERROR
+        message = "You didn't set the meal to update for."
+    else:
+        update(day=datetime.strptime(
+            request.POST['date'], '%Y-%m-%d').date(),
+               meal=meal_dict[request.POST['meal']],
+               cooks=request.POST.getlist('cooks'),
+               eaters=request.POST.getlist('eaters'),
+               notes=request.POST['notes']
+               )
+        level = messages.SUCCESS
+        message = "Update successful."
+    messages.add_message(request, level, message)
+    return HttpResponseRedirect(reverse('cookschedule:index'))
 
 
 def process_schedules(schedules: List['Schedule']):
