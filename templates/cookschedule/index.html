@@ -115,33 +115,45 @@
                 {% endif %}
                 <i style="color:darkgrey">{{ info.meal }} on {{ info.date }}</i>
 
-                <form  action="{% url 'cookschedule:index' %}" method="post">
-                    {% csrf_token %}
+                <div style="display:flex;">
+                    <form  action="{% url 'cookschedule:index' %}" method="post">
+                        {% csrf_token %}
 
-                    <button type="button" class="btn btn-outline-danger btn-sm mt-1" data-toggle="modal" data-target="#planwarning{{ forloop.counter }}">Delete</button>
+                        <button type="button" class="btn btn-outline-danger btn-sm mt-1" data-toggle="modal" data-target="#planwarning{{ forloop.counter }}">Delete</button>
 
-                    <div class="modal fade" id="planwarning{{ forloop.counter }}" tabindex="-1" role="dialog" aria-hidden="true">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">You are deleting a record!</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    Are you sure you want to delete the entry for <br>
-                                    <b>{{ info.meal }}</b> on <b>{{ info.date }}</b>?
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
-                                    <button type="submit" name="delete" value="{{ info.time }}" class="btn btn-danger">Delete</button>
+                        <div class="modal fade" id="planwarning{{ forloop.counter }}" tabindex="-1" role="dialog" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">You are deleting a record!</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Are you sure you want to delete the entry for <br>
+                                        <b>{{ info.meal }}</b> on <b>{{ info.date }}</b>?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
+                                        <button type="submit" name="delete" value="{{ info.time }}" class="btn btn-danger">Delete</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                </form>
+                    </form>
+                    &nbsp&nbsp
+                    <form action="{% url 'cookschedule:index' %}" class="form-inline" method="get">
+                        <input type="hidden" name="cooks" value="{{ info.cooks }}">
+                        <input type="hidden" name="eaters" value="{{ info.eaters }}">
+                        <input type="hidden" name="notes" value="{{ info.notes }}">
+                        <input type="hidden" name="meal" value="{{ info.meal }}">
+                        <input type="hidden" name="date" value="{{ info.date }}">
+                        <button type="submit" class="btn btn-outline-primary btn-sm mt-1">Edit</button>
+                    </form>
+                </div>
+
             </li>
         {% endfor %}
     </ul>
@@ -157,33 +169,44 @@
                 {% endif %}
                 <i style="color:darkgrey">{{ info.meal }} on {{ info.date }}</i>
 
-                <form  action="{% url 'cookschedule:index' %}" method="post">
-                    {% csrf_token %}
+                <div style="display: flex;">
+                    <form  action="{% url 'cookschedule:index' %}" method="post">
+                        {% csrf_token %}
 
-                    <button type="button" class="btn btn-outline-danger btn-sm mt-1" data-toggle="modal" data-target="#historywarning{{ forloop.counter }}">Delete</button>
+                        <button type="button" class="btn btn-outline-danger btn-sm mt-1" data-toggle="modal" data-target="#historywarning{{ forloop.counter }}">Delete</button>
 
-                    <div class="modal fade" id="historywarning{{ forloop.counter }}" tabindex="-1" role="dialog" aria-hidden="true">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">You are deleting a record!</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    Are you sure you want to delete the entry for <br>
-                                    <b>{{ info.meal }}</b> on <b>{{ info.date }}</b>?
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
-                                    <button type="submit" name="delete" value="{{ info.time }}" class="btn btn-danger">Delete</button>
+                        <div class="modal fade" id="historywarning{{ forloop.counter }}" tabindex="-1" role="dialog" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">You are deleting a record!</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Are you sure you want to delete the entry for <br>
+                                        <b>{{ info.meal }}</b> on <b>{{ info.date }}</b>?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-primary" data-dismiss="modal">Cancel</button>
+                                        <button type="submit" name="delete" value="{{ info.time }}" class="btn btn-danger">Delete</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                </form>
+                    </form>
+                    &nbsp&nbsp
+                    <form action="{% url 'cookschedule:index' %}" class="form-inline" method="get">
+                        <input type="hidden" name="cooks" value="{{ info.cooks }}">
+                        <input type="hidden" name="eaters" value="{{ info.eaters }}">
+                        <input type="hidden" name="notes" value="{{ info.notes }}">
+                        <input type="hidden" name="meal" value="{{ info.meal }}">
+                        <input type="hidden" name="date" value="{{ info.date }}">
+                        <button type="submit" class="btn btn-outline-primary btn-sm mt-1">Edit</button>
+                    </form>
+                </div>
             </li>
         {% endfor %}
     </ul>
