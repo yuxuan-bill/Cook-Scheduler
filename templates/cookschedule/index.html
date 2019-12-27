@@ -67,7 +67,11 @@
         {% for person in scores %}
             <div class="form-check form-check-inline mb-2">
                 <label class="form-check-label">
-                    <input class="form-check-input" type="checkbox" name="cooks" value="{{ person }}"> {{ person }}
+                    <input class="form-check-input" type="checkbox" name="cooks" value="{{ person }}"
+                        {% if person in info.cooks %}
+                            checked
+                        {% endif %}
+                    > {{ person }}
                 </label>
             </div>
         {% endfor %}
@@ -76,7 +80,11 @@
         {% for person in scores %}
             <div class="form-check form-check-inline mb-2">
                 <label class="form-check-label">
-                    <input class="form-check-input" type="checkbox" name="eaters" value="{{ person }}"> {{ person }}
+                    <input class="form-check-input" type="checkbox" name="eaters" value="{{ person }}"
+                        {% if person in info.eaters %}
+                            checked
+                        {% endif %}
+                    > {{ person }}
                 </label>
             </div>
         {% endfor %}
@@ -85,17 +93,17 @@
         <div class="input-group mb-2">
             <div class="input-group-prepend">
                 <select class="selectpicker" data-style="btn-outline-secondary" data-width="fit" title="Meal" name="meal">
-                    <option>Breakfast</option>
-                    <option>Lunch</option>
-                    <option>Dinner</option>
+                    <option {% if 'Breakfast' == info.meal %} selected {% endif %}>Breakfast</option>
+                    <option {% if 'Lunch' == info.meal %} selected {% endif %}>Lunch</option>
+                    <option {% if 'Dinner' == info.meal %} selected {% endif %}>Dinner</option>
                 </select>
             </div>
-            <input class="form-control" type="date" name="date" value="{{ today }}">
+            <input class="form-control" type="date" name="date" value="{% if info.date %}{{ info.date }}{% else %}{{ today }}{% endif %}">
         </div>
 
         <h5>Additional Notes</h5>
         <div class="form-group mb-4">
-            <textarea class="form-control" name="notes" rows="3" placeholder="To eat or not to eat, that is the question..."></textarea>
+            <textarea class="form-control" name="notes" rows="3" placeholder="To eat or not to eat, that is the question...">{{ info.notes }}</textarea>
         </div>
 
         <button type="submit" class="btn btn-outline-secondary mb-5 btn-block" name="update">Update</button>

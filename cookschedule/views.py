@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
 
@@ -26,9 +26,13 @@ def index(request):
                'today': str(datetime.today().date()),
                }
 
-    # TODO: add pre-entered info, used when user click edit button
     if request.GET:
-        pass
+        context['info'] = {'cooks': request.GET['cooks'].split(", "),
+                           'eaters': request.GET['eaters'].split(", "),
+                           'notes': request.GET['notes'],
+                           'meal': request.GET['meal'],
+                           'date': request.GET['date']
+                           }
 
     return render(request, 'cookschedule/index.html', context)
 
@@ -77,7 +81,7 @@ def process_schedules(schedules: List['Schedule']):
                    'meal': meal_dict[meal_delta],
                    'time': str(schedule.time),
                    'update_time': str(schedule.update_time)
-                    }
+                   }
         if schedule.note:
             context['notes'] = schedule.note
         result.append(context)
