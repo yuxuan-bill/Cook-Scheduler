@@ -1,4 +1,7 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate
+from django.contrib.auth import login as auth_login
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.contrib import messages
@@ -9,6 +12,7 @@ from .models import *
 # Create your views here.
 
 
+@login_required(login_url='/login/')
 def index(request):
 
     if 'delete' in request.POST:
@@ -86,3 +90,17 @@ def process_schedules(schedules: List['Schedule']):
             context['notes'] = schedule.note
         result.append(context)
     return result
+
+
+def login(request):
+    if request.POST:
+        user = authenticate(request, username=request.POST['username'],
+                            password=request.POST['password'])
+        if user is not None:
+            auth_login(request, user)
+            return HttpResponseRedirect(reverse('cookschedule:index'))
+        else:
+            messages.add_message(request, messages.ERROR,
+                                 "Invalid username or password, try again.")
+            return HttpResponseRedirect(reverse('cookschedule:login'))
+    return render(request, 'cookschedule/login.html')
