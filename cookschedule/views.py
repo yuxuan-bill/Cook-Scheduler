@@ -103,9 +103,10 @@ def login(request):
             auth_login(request, user)
             return HttpResponseRedirect(request.POST['next'])
         else:
-            messages.add_message(request, messages.ERROR,
-                                 "Invalid username or password, try again.")
-            return HttpResponseRedirect(reverse('cookschedule:login'))
+            url = request.POST['next']
+            error = "Invalid username or password"
+            return render(request, 'cookschedule/login.html',
+                          {'next': url, "error": error})
 
     url = request.GET['next'] if 'next' in request.GET \
         else reverse('cookschedule:index')
@@ -119,7 +120,34 @@ def logout(request):
 
 @login_required(login_url=reverse_lazy('cookschedule:login'))
 def change_password(request):
+
     if request.POST:
-        pass
+        user = authenticate(username=request.user.username,
+                            password=request.POST['original'])
+        if user is None:
+            level = messages.ERROR
+            message = "Your original password is incorrect."
+        elif request.POST['new'] != request.POST['confirm']:
+            level = messages.ERROR
+            message = "The two new passwords you entered does not match."
+        elif len(request.POST['new']) == 0:
+            level = messages.ERROR
+            message = "Your new password cannot be empty."
+        elif request.POST['new'] == request.POST['original']:
+            level = messages.ERROR
+            message = "Your new password cannot be the same " \
+                      "as the original one."
+        else:
+            request.user.set_password(request.POST['new'])
+            request.user.save()
+            level = messages.SUCCESS
+            message = "Successfully changed password."
+
+        messages.add_message(request, level, message)
+        if level == messages.ERROR:
+            return HttpResponseRedirect(
+                reverse('cookschedule:change_password'))
+        return HttpResponseRedirect(reverse('cookschedule:index'))
+
     return render(request, 'cookschedule/change_password.html',
                   {'user': request.user.username})
