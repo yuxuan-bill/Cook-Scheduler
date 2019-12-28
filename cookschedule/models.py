@@ -11,7 +11,7 @@ lunch = timedelta(hours=12, minutes=30)
 dinner = timedelta(hours=18, minutes=30)
 meal_dict = {breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner",
              "Breakfast": breakfast, "Lunch": lunch, "Dinner": dinner}
-undo_time_limit = timedelta(minutes=5)
+undo_time_limit = timedelta(minutes=1)
 
 
 # get score for every participant, counting only history meal
@@ -35,7 +35,7 @@ def score() -> Dict[str, float]:
 # add to schedule if the get_time(date, meal) combination is new,
 # otherwise modify existing entry. Return true if this is an update, false
 # if new entry was added.
-def update(day: date, meal: timedelta,
+def update(day: date, meal: timedelta, user: str,
            cooks: List[str], eaters: List[str], notes=""):
     time = get_time(day, meal)
     is_update = True
@@ -50,18 +50,27 @@ def update(day: date, meal: timedelta,
     schedule.save()
     schedule.set_cooks(cooks)
     schedule.set_eaters(eaters)
+    add_changelog(day=day, meal=meal,
+                  action=ChangeLog.update if is_update else ChangeLog.add,
+                  user=user, note_previous=notes, cooks_previous=cooks,
+                  eaters_previous=eaters)
     return is_update
 
 
 # delete the schedule specified by date and meal from database,
 # return False if the entry does not exist, otherwise True
-def delete(day: date, meal: timedelta):
+def delete(day: date, meal: timedelta, user: str):
     time = get_time(day, meal)
     try:
         schedule = Schedule.objects.get(time=time)
     except Schedule.DoesNotExist:
         return False
     else:
+        info = schedule.getinfo()
+        add_changelog(day=day, meal=meal,
+                      action=ChangeLog.delete, user=user,
+                      note_previous=info['note'], cooks_previous=info['cooks'],
+                      eaters_previous=info['eaters'])
         schedule.delete()
         return True
 
@@ -69,13 +78,32 @@ def delete(day: date, meal: timedelta):
 def add_changelog(day: date, meal: timedelta, action: str, user: str,
                   note_previous: str,
                   cooks_previous: List[str], eaters_previous: List[str]):
-    pass
+    changelog = ChangeLog(time=get_time(day, meal), action=action, user=user,
+                          note_previous=note_previous)
+    changelog.save()
+    changelog.set_previous_cooks(cooks_previous)
+    changelog.set_previous_eaters(eaters_previous)
 
 
 # undo the last recent action done by the user with specified username,
-# return false if there is no such recent action, true otherwise.
+# return false if there is no such recent action, true otherwise. Upon
+# success, this also adds to changelog, since undo is also part of a change.
 def undo(username):
-    pass
+    change_logs = ChangeLog.objects.filter(
+        update_time__gt=datetime.now() - undo_time_limit, user=username)\
+        .order_by('update_time')
+    if len(change_logs) == 0:
+        return False
+    else:
+        change_log = change_logs[0]
+        day, meal = get_day_meal(change_log.time)
+        if change_log.action == ChangeLog.add:
+            delete(day, meal, username)
+        else:  # action is delete or update
+            update(day=day, meal=meal, user=username,
+                   cooks=change_log.previous_cooks(),
+                   eaters=change_log.previous_eaters())
+        return True
 
 
 # 删库跑路
@@ -99,6 +127,12 @@ def get_time(day: date, meal: timedelta) -> datetime:
     if meal not in [breakfast, lunch, dinner]:
         raise Exception(str(meal) + " is not one of breakfast/lunch/dinner.")
     return datetime(year=day.year, month=day.month, day=day.day) + meal
+
+
+def get_day_meal(time: datetime) -> (date, timedelta):
+    meal = time.time()
+    meal_delta = timedelta(hours=meal.hour, minutes=meal.minute)
+    return time.date(), meal_delta
 
 
 class Schedule(models.Model):
@@ -161,8 +195,10 @@ class Eater(models.Model):
 # ChangeLog represents each change made to the cooking schedule. We store
 # all change histories so that no data gets lost. The layout of this table is
 # similar to that of Schedule table, except that primary key is auto picked,
-# there is an action field denoting what action was preformed on this row
-# of data, and the user field records the user who performed this action.
+# and there are two additional fields user and action.
+#
+# ChangeLog is a monotonically increasing table, and no previous entries should
+# be modified, since they serve as a record.
 class ChangeLog(models.Model):
 
     delete = "delete"

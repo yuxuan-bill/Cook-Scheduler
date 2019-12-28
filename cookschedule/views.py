@@ -45,7 +45,8 @@ def index(request):
 def handle_delete(request):
     time = datetime.strptime(request.POST['delete'], '%Y-%m-%d %H:%M:%S')
     meal = time.time()
-    delete(time.date(), timedelta(hours=meal.hour, minutes=meal.minute))
+    delete(time.date(), timedelta(hours=meal.hour, minutes=meal.minute),
+           user=request.user.username)
     messages.add_message(request, messages.WARNING, str(time))
     return HttpResponseRedirect(reverse('cookschedule:index'))
 
@@ -64,6 +65,7 @@ def handle_update(request):
         update(day=datetime.strptime(
             request.POST['date'], '%Y-%m-%d').date(),
                meal=meal_dict[request.POST['meal']],
+               user=request.user.username,
                cooks=request.POST.getlist('cooks'),
                eaters=request.POST.getlist('eaters'),
                notes=request.POST['notes']
