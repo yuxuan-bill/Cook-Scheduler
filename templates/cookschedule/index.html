@@ -43,6 +43,12 @@
         {% endfor %}
     {% endif %}
 
+    <div class="mt-1 ml-1">
+        Welcome, <i><b>{{ user }}</b></i> |
+        <a href="{% url "cookschedule:change_password" %}" style="color:black"><u>Change password</u></a> |
+        <a href="{% url "cookschedule:logout" %}" style="color:black"><u>Logout</u></a>
+    </div>
+
     <table class="table table-striped mt-1">
         <thead>
             <tr>
@@ -218,6 +224,7 @@
             </li>
         {% endfor %}
     </ul>
+    <br>
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->

@@ -1,9 +1,9 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate
-from django.contrib.auth import login as auth_login
+from django.contrib.auth \
+    import authenticate, login as auth_login, logout as auth_logout
 from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.contrib import messages
 
 from .models import *
@@ -12,7 +12,7 @@ from .models import *
 # Create your views here.
 
 
-@login_required(login_url='/login/')
+@login_required(login_url=reverse_lazy('cookschedule:login'))
 def index(request):
 
     if 'delete' in request.POST:
@@ -28,6 +28,7 @@ def index(request):
                'plan': process_schedules(plan()),
                'history': process_schedules(history()),
                'today': str(datetime.today().date()),
+               'user': request.user.username
                }
 
     if request.GET:
@@ -93,14 +94,32 @@ def process_schedules(schedules: List['Schedule']):
 
 
 def login(request):
+    if request.user.is_authenticated:
+        return index(request)
     if request.POST:
         user = authenticate(request, username=request.POST['username'],
                             password=request.POST['password'])
         if user is not None:
             auth_login(request, user)
-            return HttpResponseRedirect(reverse('cookschedule:index'))
+            return HttpResponseRedirect(request.POST['next'])
         else:
             messages.add_message(request, messages.ERROR,
                                  "Invalid username or password, try again.")
             return HttpResponseRedirect(reverse('cookschedule:login'))
-    return render(request, 'cookschedule/login.html')
+
+    url = request.GET['next'] if 'next' in request.GET \
+        else reverse('cookschedule:index')
+    return render(request, 'cookschedule/login.html', {'next': url})
+
+
+def logout(request):
+    auth_logout(request)
+    return HttpResponseRedirect(reverse('cookschedule:login'))
+
+
+@login_required(login_url=reverse_lazy('cookschedule:login'))
+def change_password(request):
+    if request.POST:
+        pass
+    return render(request, 'cookschedule/change_password.html',
+                  {'user': request.user.username})
