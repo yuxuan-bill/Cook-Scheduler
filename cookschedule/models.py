@@ -42,18 +42,25 @@ def update(day: date, meal: timedelta, user: str,
     try:
         schedule = Schedule.objects.get(time=time)
     except Schedule.DoesNotExist:
+        action = ChangeLog.add
+        note_previous = notes
+        cooks_previous = cooks
+        eaters_previous = eaters
         schedule = Schedule(time=time, note=notes)
         is_update = False
     else:
+        action = ChangeLog.update
+        note_previous = schedule.note
+        cooks_previous = schedule.cooks()
+        eaters_previous = schedule.eaters()
         schedule.time = time
         schedule.note = notes
     schedule.save()
     schedule.set_cooks(cooks)
     schedule.set_eaters(eaters)
-    add_changelog(day=day, meal=meal,
-                  action=ChangeLog.update if is_update else ChangeLog.add,
-                  user=user, note_previous=notes, cooks_previous=cooks,
-                  eaters_previous=eaters)
+    add_changelog(day=day, meal=meal, action=action, user=user,
+                  note_previous=note_previous, cooks_previous=cooks_previous,
+                  eaters_previous=eaters_previous)
     return is_update
 
 
@@ -209,7 +216,7 @@ class ChangeLog(models.Model):
     time = models.DateTimeField()
     update_time = models.DateTimeField(auto_now=True)
     action = models.CharField(choices=actions, max_length=6)
-    user = models.CharField(max_length=150)
+    user = models.CharField(choices=Schedule.participants, max_length=150)
     note_previous = models.CharField(max_length=1024)
 
     def __str__(self):
@@ -224,14 +231,14 @@ class ChangeLog(models.Model):
     def set_previous_cooks(self, cooks):
         self.previouscook_set.all().delete()
         for cook in cooks:
-            self.previouscook_set.create(id=self.pk, name=cook).save()
+            self.previouscook_set.create(key=self.pk, name=cook).save()
         self.update_time = datetime.now()
         self.save()
 
     def set_previous_eaters(self, eaters):
         self.previouseater_set.all().delete()
         for eater in eaters:
-            self.previouseater_set.create(time=self.time, name=eater).save()
+            self.previouseater_set.create(key=self.pk, name=eater).save()
         self.update_time = datetime.now()
         self.save()
 
@@ -241,15 +248,15 @@ class ChangeLog(models.Model):
                 'action': self.action,
                 'user': self.user,
                 'note_previous': self.note_previous,
-                'cooks_previous:': self.previous_cooks(),
-                'eaters_previous:': self.previous_eaters()}
+                'cooks_previous': self.previous_cooks(),
+                'eaters_previous': self.previous_eaters()}
 
 
-class PreviousCook:
-    id = models.ForeignKey(ChangeLog, on_delete=models.CASCADE)
+class PreviousCook(models.Model):
+    key = models.ForeignKey(ChangeLog, on_delete=models.CASCADE)
     name = models.CharField(choices=Schedule.participants, max_length=16)
 
 
-class PreviousEater:
-    id = models.ForeignKey(ChangeLog, on_delete=models.CASCADE)
+class PreviousEater(models.Model):
+    key = models.ForeignKey(ChangeLog, on_delete=models.CASCADE)
     name = models.CharField(choices=Schedule.participants, max_length=16)
