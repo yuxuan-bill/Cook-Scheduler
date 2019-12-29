@@ -169,7 +169,7 @@ class ScheduleModelTests(TestCase):
         self.assertEquals(undo("another_user"), False)
         self.assertEquals(len(Schedule.objects.all()), 4)
 
-    def test_undo_action_add(self):
+    def test_undo_action_add_delete(self):
         update(day=datetime(year=2000, month=12, day=12),
                meal=lunch,
                cooks=[darcy],
@@ -178,4 +178,59 @@ class ScheduleModelTests(TestCase):
                user=user)
         self.assertEquals(undo(user), True)
         self.assertEquals(len(ChangeLog.objects.all()), 2)
-        self.assertEquals(ChangeLog.objects.all()[1].action, 'delete')
+
+        log_info1 = {'pk': 1,
+                     'action': 'add',
+                     'user': user,
+                     'note_previous': "new schedule",
+                     'cooks_previous': [darcy],
+                     'eaters_previous': [leo]
+                     }
+        actual_info1 = ChangeLog.objects.all()[0].getinfo()
+        self.assertLessEqual(
+            abs((actual_info1['update_time'] - datetime.now()).total_seconds()),
+            5)
+        del actual_info1['update_time']
+        self.assertEquals(log_info1, actual_info1)
+
+        log_info2 = {'pk': 2,
+                     'action': 'delete',
+                     'user': user,
+                     'note_previous': "new schedule",
+                     'cooks_previous': [darcy],
+                     'eaters_previous': [leo]
+                     }
+        actual_info2 = ChangeLog.objects.all()[1].getinfo()
+        self.assertLessEqual(
+            abs((actual_info2['update_time'] - datetime.now()).total_seconds()),
+            5)
+        del actual_info2['update_time']
+        self.assertEquals(log_info2, actual_info2)
+
+    def test_undo_action_update(self):
+        update(day=datetime(year=2100, month=12, day=12),
+               meal=lunch,
+               cooks=[darcy],
+               eaters=participants,
+               notes=' ',
+               user=user)
+        update(day=datetime(year=2100, month=12, day=12),
+               meal=lunch,
+               cooks=[darcy, bill],
+               eaters=participants,
+               notes='one space',
+               user=user)
+
+        log_info2 = {'pk': 2,
+                     'action': 'update',
+                     'user': user,
+                     'note_previous': " ",
+                     'cooks_previous': [darcy],
+                     'eaters_previous': participants
+                     }
+        actual_info2 = ChangeLog.objects.all()[1].getinfo()
+        self.assertLessEqual(
+            abs((actual_info2['update_time'] - datetime.now()).total_seconds()),
+            5)
+        del actual_info2['update_time']
+        self.assertEquals(log_info2, actual_info2)

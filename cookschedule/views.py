@@ -21,6 +21,9 @@ def index(request):
     if 'update' in request.POST:
         return handle_update(request)
 
+    if 'undo' in request.POST:
+        return handle_undo(request)
+
     scores = score()
     for people in scores:
         scores[people] = round(scores[people], 1)
@@ -31,7 +34,9 @@ def index(request):
                'user': request.user.username
                }
 
+    # when 'edit' button is pressed
     if request.GET:
+        print(request.GET)
         context['info'] = {'cooks': request.GET['cooks'].split(", "),
                            'eaters': request.GET['eaters'].split(", "),
                            'notes': request.GET['notes'],
@@ -44,10 +49,9 @@ def index(request):
 
 def handle_delete(request):
     time = datetime.strptime(request.POST['delete'], '%Y-%m-%d %H:%M:%S')
-    meal = time.time()
-    delete(time.date(), timedelta(hours=meal.hour, minutes=meal.minute),
-           user=request.user.username)
-    messages.add_message(request, messages.WARNING, str(time))
+    day, meal = get_day_meal(time)
+    delete(day=day, meal=meal, user=request.user.username)
+    messages.add_message(request, messages.WARNING, "Deleted Schedule.")
     return HttpResponseRedirect(reverse('cookschedule:index'))
 
 
@@ -74,6 +78,17 @@ def handle_update(request):
         message = "Update successful."
     messages.add_message(request, level, message)
     return HttpResponseRedirect(reverse('cookschedule:index'))
+
+
+def handle_undo(request):
+    success = undo(request.user.username)
+    if success:
+        messages.add_message(request, messages.SUCCESS, "Undid last action.")
+        return HttpResponseRedirect(reverse('cookschedule:index'))
+    else:
+        messages.add_message(request, messages.ERROR,
+                             "There is nothing to undo")
+        return HttpResponseRedirect(reverse('cookschedule:index'))
 
 
 def process_schedules(schedules: List['Schedule']):

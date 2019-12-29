@@ -9,6 +9,26 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
+    <style>
+        {# button styling that makes it look like a link #}
+        button {
+            overflow: visible;
+            width: auto;
+        }
+        button.link {
+            font-size: 1em;
+            text-align: left;
+            background: none;
+            margin: 0;
+            padding: 0;
+            border: none;
+            cursor: pointer;
+
+
+            /* override all your button styles here if there are any others */
+        }
+    </style>
+
     <title>Let's Cooook!</title>
 
     <link rel="shortcut icon" type="image/png" href="{% static 'cookschedule/favicon.ico' %}"/>
@@ -26,15 +46,23 @@
                     </button>
                 </div>
             {% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
-                <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
-                    Deleted schedule.
+                <div class="alert alert-warning alert-dismissible fade show mt-3" style="display: flex;" role="alert">
+                    {{ message }}&nbsp
+                    <form action="{% url "cookschedule:index" %}" class="form-inline" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="link alert-warning" name="undo"><u><i>undo</i></u></button>
+                    </form>
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
             {% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
-                <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
-                    {{ message }}
+                <div class="alert alert-success alert-dismissible fade show mt-3" style="display: flex;" role="alert">
+                    {{ message }}&nbsp
+                    <form action="{% url "cookschedule:index" %}" class="form-inline" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="link alert-success" name="undo"><u><i>undo</i></u></button>
+                    </form>
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>

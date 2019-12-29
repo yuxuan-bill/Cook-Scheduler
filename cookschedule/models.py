@@ -98,7 +98,7 @@ def add_changelog(day: date, meal: timedelta, action: str, user: str,
 def undo(username):
     change_logs = ChangeLog.objects.filter(
         update_time__gt=datetime.now() - undo_time_limit, user=username)\
-        .order_by('update_time')
+        .order_by('-update_time')
     if len(change_logs) == 0:
         return False
     else:
@@ -109,7 +109,8 @@ def undo(username):
         else:  # action is delete or update
             update(day=day, meal=meal, user=username,
                    cooks=change_log.previous_cooks(),
-                   eaters=change_log.previous_eaters())
+                   eaters=change_log.previous_eaters(),
+                   notes=change_log.note_previous)
         return True
 
 
