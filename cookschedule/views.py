@@ -36,7 +36,6 @@ def index(request):
 
     # when 'edit' button is pressed
     if request.GET:
-        print(request.GET)
         context['info'] = {'cooks': request.GET['cooks'].split(", "),
                            'eaters': request.GET['eaters'].split(", "),
                            'notes': request.GET['notes'],
