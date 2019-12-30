@@ -8,6 +8,7 @@ darcy = Schedule.darcy
 bill = Schedule.bill
 daniel = Schedule.daniel
 participants = [x for x, _ in Schedule.participants]
+user = "fake_test_user"
 
 
 class ScheduleModelTests(TestCase):
@@ -25,7 +26,8 @@ class ScheduleModelTests(TestCase):
 
         past_schedule1 = Schedule.objects.create(
             time=get_time(self.today + timedelta(days=-1), lunch),
-            note="lunch for yesterday"
+            note="lunch for yesterday, and this is a long long long long"
+                 " long long long long long long note"
         )
         past_schedule1.set_eaters([leo, darcy, bill])
         past_schedule1.set_cooks([leo, darcy])
@@ -37,19 +39,10 @@ class ScheduleModelTests(TestCase):
         past_schedule2.set_cooks([bill])
         past_schedule2.set_eaters(participants)
 
-        cancelled_schedule = Schedule.objects.create(
-            time=get_time(self.today, lunch),
-            cancelled=True,
-            note="cancelled schedule"
-        )
-        cancelled_schedule.set_eaters(participants)
-        cancelled_schedule.set_cooks(participants)
-
-    def test_schema(self):
+    def test_schedule_schema(self):
         schedules = Schedule.objects.all()
-        self.assertEquals(len(schedules), 4)
+        self.assertEquals(len(schedules), 3)
         info2 = {'time': get_time(self.today + timedelta(days=-1), dinner),
-                 'cancelled': False,
                  'cooks': [bill],
                  'eaters': [bill, daniel, darcy, leo],
                  'note': "dinner@for#yesterday!"}
@@ -70,43 +63,81 @@ class ScheduleModelTests(TestCase):
                meal=lunch,
                cooks=[darcy],
                eaters=[leo],
-               notes='new schedule')
+               notes='new schedule',
+               user=user)
         schedule = Schedule.objects.get(time=get_time(day, lunch))
         self.assertEquals(schedule.cooks(), [darcy])
         self.assertEquals(schedule.eaters(), [leo])
         self.assertEquals(schedule.note, 'new schedule')
 
+        change_logs = ChangeLog.objects.all()
+        self.assertEquals(len(change_logs), 1)
+        log_info = {
+            'pk': 1,
+            'action': 'add',
+            'user': user,
+            'note_previous': 'new schedule',
+            'cooks_previous': [darcy],
+            'eaters_previous': [leo]
+        }
+        actual_info = change_logs[0].getinfo()
+        self.assertLessEqual(
+            abs((actual_info['update_time'] - datetime.now()).total_seconds()),
+            5)
+        del actual_info['update_time']
+        self.assertEquals(actual_info, log_info)
+
     def test_modify_existent_schedule(self):
-        update(day=self.today,
+        update(day=self.today + timedelta(days=-1),
                meal=lunch,
                cooks=[darcy, bill, leo],
                eaters=participants,
-               notes='restore schedule')
-        schedule = Schedule.objects.get(time=get_time(self.today, lunch))
-        self.assertEquals(schedule.cancelled, False)
+               notes="modified",
+               user=user)
+        schedule = Schedule.objects.get(
+            time=get_time(self.today + timedelta(days=-1), lunch))
         self.assertEquals(schedule.cooks(), [darcy, bill, leo])
 
-    def test_delete_schedule(self):
-        delete(self.today + timedelta(days=1), breakfast)
-        self.assertEquals(len(plan()), 0)
+        change_logs = ChangeLog.objects.all()
+        self.assertEquals(len(change_logs), 1)
+        log_info = {
+            'pk': 1,
+            'action': 'update',
+            'user': user,
+            'note_previous': "lunch for yesterday, and this is a long long "
+                             "long long long long long long long long note",
+            'cooks_previous': [leo, darcy],
+            'eaters_previous': [leo, darcy, bill]
+        }
+        actual_info = change_logs[0].getinfo()
+        self.assertLessEqual(
+            abs((actual_info['update_time'] - datetime.now()).total_seconds()),
+            5)
+        del actual_info['update_time']
+        self.assertEquals(actual_info, log_info)
 
-    def test_hard_delete(self):
-        hard_delete(self.today + timedelta(days=-1), dinner)
-        time = get_time(self.today + timedelta(days=-1), dinner)
-        try:
-            Schedule.objects.get(time=time)
-        except Schedule.DoesNotExist:
-            pass
-        else:
-            self.fail()
-        self.assertEquals(len(Cook.objects.filter(time=time)), 0)
-        self.assertEquals(len(Eat.objects.filter(time=time)), 0)
+    def test_delete_schedule(self):
+        delete(self.today + timedelta(days=1), breakfast, user=user)
+        self.assertEquals(len(plan()), 0)
+        self.assertEquals(len(Schedule.objects.all()), 2)
+
+        change_logs = ChangeLog.objects.all()
+        self.assertEquals(len(change_logs), 1)
+        self.assertEquals(change_logs[0].action, 'delete')
+        self.assertEquals(change_logs[0].note_previous, 'future schedule')
+
+        change_logs = ChangeLog.objects.all()
+        self.assertEquals(len(change_logs), 1)
+        self.assertEquals(change_logs[0].action, 'delete')
 
     def test_delete_all(self):
         delete_all()
         self.assertEquals(len(Schedule.objects.all()), 0)
         self.assertEquals(len(Cook.objects.all()), 0)
-        self.assertEquals(len(Eat.objects.all()), 0)
+        self.assertEquals(len(Eater.objects.all()), 0)
+        self.assertEquals(len(ChangeLog.objects.all()), 0)
+        self.assertEquals(len(PreviousCook.objects.all()), 0)
+        self.assertEquals(len(PreviousEater.objects.all()), 0)
 
     def test_get_score(self):
         scores = score()
@@ -118,10 +149,88 @@ class ScheduleModelTests(TestCase):
         self.assertEquals(len(history_schedule), 2)
 
         # history is in descending order of time
-        self.assertEquals(history_schedule[1].note, "lunch for yesterday")
+        self.assertEquals(history_schedule[1].note,
+                          "lunch for yesterday, and this is a long long long "
+                          "long long long long long long long note")
         self.assertEquals(history_schedule[0].note, "dinner@for#yesterday!")
 
     def test_get_planned_schedule(self):
         planned_schedule = plan()
         self.assertEquals(len(planned_schedule), 1)
         self.assertEquals(planned_schedule[0].note, "future schedule")
+
+    def test_undo_wrong_user(self):
+        update(day=datetime(year=2000, month=12, day=12),
+               meal=lunch,
+               cooks=[darcy],
+               eaters=[leo],
+               notes='new schedule',
+               user=user)
+        self.assertEquals(undo("another_user"), False)
+        self.assertEquals(len(Schedule.objects.all()), 4)
+
+    def test_undo_action_add_delete(self):
+        update(day=datetime(year=2000, month=12, day=12),
+               meal=lunch,
+               cooks=[darcy],
+               eaters=[leo],
+               notes='new schedule',
+               user=user)
+        self.assertEquals(undo(user), True)
+        self.assertEquals(len(ChangeLog.objects.all()), 2)
+
+        log_info1 = {'pk': 1,
+                     'action': 'add',
+                     'user': user,
+                     'note_previous': "new schedule",
+                     'cooks_previous': [darcy],
+                     'eaters_previous': [leo]
+                     }
+        actual_info1 = ChangeLog.objects.all()[0].getinfo()
+        self.assertLessEqual(
+            abs((actual_info1['update_time'] - datetime.now()).total_seconds()),
+            5)
+        del actual_info1['update_time']
+        self.assertEquals(log_info1, actual_info1)
+
+        log_info2 = {'pk': 2,
+                     'action': 'delete',
+                     'user': user,
+                     'note_previous': "new schedule",
+                     'cooks_previous': [darcy],
+                     'eaters_previous': [leo]
+                     }
+        actual_info2 = ChangeLog.objects.all()[1].getinfo()
+        self.assertLessEqual(
+            abs((actual_info2['update_time'] - datetime.now()).total_seconds()),
+            5)
+        del actual_info2['update_time']
+        self.assertEquals(log_info2, actual_info2)
+
+    def test_undo_action_update(self):
+        update(day=datetime(year=2100, month=12, day=12),
+               meal=lunch,
+               cooks=[darcy],
+               eaters=participants,
+               notes=' ',
+               user=user)
+        update(day=datetime(year=2100, month=12, day=12),
+               meal=lunch,
+               cooks=[darcy, bill],
+               eaters=participants,
+               notes='one space',
+               user=user)
+
+        log_info2 = {'pk': 2,
+                     'action': 'update',
+                     'user': user,
+                     'note_previous': " ",
+                     'cooks_previous': [darcy],
+                     'eaters_previous': participants
+                     }
+        actual_info2 = ChangeLog.objects.all()[1].getinfo()
+        self.assertLessEqual(
+            abs((actual_info2['update_time'] - datetime.now()).total_seconds()),
+            5)
+        del actual_info2['update_time']
+        self.assertEquals(log_info2, actual_info2)
