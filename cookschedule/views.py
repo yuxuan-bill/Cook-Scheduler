@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth \
     import authenticate, login as auth_login, logout as auth_logout
@@ -77,18 +77,16 @@ def handle_update(request):
         level = messages.SUCCESS
         message = "Update successful."
     messages.add_message(request, level, message)
-    return HttpResponseRedirect(reverse('cookschedule:index'))
+    return redirect('cookschedule:index')
 
 
 def handle_undo(request):
     success = undo(request.user.username)
     if success:
-        messages.add_message(request, messages.SUCCESS, "Undid last action.")
-        return HttpResponseRedirect(reverse('cookschedule:index'))
+        messages.success(request, "Undid last action.", extra_tags="undo")
     else:
-        messages.add_message(request, messages.ERROR,
-                             "There is nothing to undo")
-        return HttpResponseRedirect(reverse('cookschedule:index'))
+        messages.error(request, "There is nothing to undo", extra_tags="undo")
+    return redirect('cookschedule:index')
 
 
 def process_schedules(schedules: List['Schedule']):
@@ -132,7 +130,7 @@ def login(request):
 
 def logout(request):
     auth_logout(request)
-    return HttpResponseRedirect(reverse('cookschedule:login'))
+    return redirect('cookschedule:login')
 
 
 @login_required(login_url=reverse_lazy('cookschedule:login'))
@@ -162,9 +160,8 @@ def change_password(request):
 
         messages.add_message(request, level, message)
         if level == messages.ERROR:
-            return HttpResponseRedirect(
-                reverse('cookschedule:change_password'))
-        return HttpResponseRedirect(reverse('cookschedule:index'))
+            return redirect('cookschedule:change_password')
+        return redirect('cookschedule:index')
 
     return render(request, 'cookschedule/change_password.html',
                   {'user': request.user.username})

@@ -47,22 +47,28 @@
                 </div>
             {% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
                 <div class="alert alert-warning alert-dismissible fade show mt-3" style="display: flex;" role="alert">
-                    {{ message }}&nbsp
-                    <form action="{% url "cookschedule:index" %}" class="form-inline" method="post">
-                        {% csrf_token %}
-                        <button type="submit" class="link alert-warning" name="undo"><u><i>undo</i></u></button>
-                    </form>
+                    {{ message }}
+                    {% if message.tags != "undo warning" %}
+                        &nbsp
+                        <form action="{% url "cookschedule:index" %}" class="form-inline" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="link alert-warning" name="undo"><u><i>undo</i></u></button>
+                        </form>
+                    {% endif %}
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
             {% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
                 <div class="alert alert-success alert-dismissible fade show mt-3" style="display: flex;" role="alert">
-                    {{ message }}&nbsp
-                    <form action="{% url "cookschedule:index" %}" class="form-inline" method="post">
-                        {% csrf_token %}
-                        <button type="submit" class="link alert-success" name="undo"><u><i>undo</i></u></button>
-                    </form>
+                    {{ message }}
+                    {% if message.tags != "undo success" %}
+                        &nbsp
+                        <form action="{% url "cookschedule:index" %}" class="form-inline" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="link alert-success" name="undo"><u><i>undo</i></u></button>
+                        </form>
+                    {% endif %}
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
