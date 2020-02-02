@@ -78,9 +78,9 @@
     {% endif %}
 
     <div class="mt-1 ml-1">
-        Welcome, <i><b>{{ user }}</b></i> |
-        <a href="{% url "cookschedule:change_password" %}" style="color:black"><u>Change password</u></a> |
-        <a href="{% url "cookschedule:logout" %}" style="color:black"><u>Logout</u></a>
+        Welcome, <a href="{% url "cookschedule:user_stat" %}" style="color:black"><i><b><u>{{ user }}</u></b></i></a> |
+        <a href="{% url "public shopping cart placeholder" %}" style="color:black"><u>Shopping cart</u></a> |
+        <a href="{% url "personal shopping cart placeholder" %}" style="color:black"><u>My cart</u></a>
     </div>
 
     <table class="table table-striped mt-1">
@@ -146,7 +146,7 @@
             <textarea class="form-control" name="notes" rows="3" placeholder="To eat or not to eat, that is the question...">{{ info.notes }}</textarea>
         </div>
 
-        <button type="submit" class="btn btn-outline-secondary mb-5 btn-block" name="update">Update</button>
+        <button type="submit" class="btn btn-outline-primary mb-5 btn-block" name="update">Update</button>
 
     </form>
 

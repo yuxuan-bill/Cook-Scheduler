@@ -164,3 +164,10 @@ def change_password(request):
 
     return render(request, 'cookschedule/change_password.html',
                   {'user': request.user.username})
+
+
+@login_required(login_url=reverse_lazy('cookschedule:login'))
+def user_stat(request):
+
+    context = {'user': request.user}
+    return render(request, 'cookschedule/user_stat.html', context)
