@@ -79,8 +79,8 @@
 
     <div class="mt-1 ml-1">
         Welcome, <a href="{% url "cookschedule:user_stat" %}" style="color:black"><i><b><u>{{ user }}</u></b></i></a> |
-        <a href="{% url "public shopping cart placeholder" %}" style="color:black"><u>Shopping cart</u></a> |
-        <a href="{% url "personal shopping cart placeholder" %}" style="color:black"><u>My cart</u></a>
+        <a href="{% url "cookschedule:user_stat" %}" style="color:black"><u>Shopping cart</u></a> |
+        <a href="{% url "cookschedule:user_stat" %}" style="color:black"><u>My cart</u></a>
     </div>
 
     <table class="table table-striped mt-1">
@@ -142,11 +142,12 @@
         </div>
 
         <h5>Additional Notes</h5>
-        <div class="form-group mb-4">
+        <div class="form-group mb-3">
             <textarea class="form-control" name="notes" rows="3" placeholder="To eat or not to eat, that is the question...">{{ info.notes }}</textarea>
         </div>
 
-        <button type="submit" class="btn btn-outline-primary mb-5 btn-block" name="update">Update</button>
+        <button type="submit" class="btn btn-outline-primary" style="width:49%" name="update">Update</button>
+        <a href="{% url "cookschedule:index" %}" class="btn btn-outline-danger" style="width:49%">Clear</a>
 
     </form>
 

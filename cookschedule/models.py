@@ -261,3 +261,9 @@ class PreviousCook(models.Model):
 class PreviousEater(models.Model):
     key = models.ForeignKey(ChangeLog, on_delete=models.CASCADE)
     name = models.CharField(choices=Schedule.participants, max_length=16)
+
+
+class Joke(models.Model):
+    type = models.CharField(max_length=16)
+    setup = models.CharField(max_length=1024)
+    punchline = models.CharField(max_length=1024)
