@@ -2,6 +2,7 @@ from django.db import models
 from datetime import timedelta
 from datetime import date, datetime
 from typing import List, Dict
+from random import randint
 
 
 # Create your models here.
@@ -143,6 +144,21 @@ def get_day_meal(time: datetime) -> (date, timedelta):
     return time.date(), meal_delta
 
 
+def add_joke(type: str, setup: str, punchline=""):
+    new_joke = Joke(type=type, setup=setup, punchline=punchline)
+    new_joke.save()
+
+
+# get a random joke from joke database
+def get_joke() -> Dict[str, str]:
+    index = randint(0, Joke.objects.count() - 1)
+    # get the index(th) entry in database.
+    # We use this method since primary key may be incontiguous.
+    joke = Joke.objects.all()[index].info()
+    del joke['pk']
+    return joke
+
+
 class Schedule(models.Model):
 
     bill = "Bill"
@@ -267,3 +283,10 @@ class Joke(models.Model):
     type = models.CharField(max_length=16)
     setup = models.CharField(max_length=1024)
     punchline = models.CharField(max_length=1024)
+
+    def __str__(self):
+        return str(self.info())
+
+    def info(self):
+        return {'pk': self.pk, 'type': self.type,
+                'setup': self.setup, 'punchline': self.punchline}
