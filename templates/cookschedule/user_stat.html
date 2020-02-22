@@ -17,12 +17,22 @@
 </head>
 
 <body><div class="mt-1 ml-1 mr-1">
-    <h4>Hello, {{ user }}!</h4>
-    It has been {{ last }} since your last update on Cook Scheduler. Among the {{ num }} days you stayed with us,
-    you paired up with {{ name }} most, and cooked {{ num }} meals for you and others.<br><br>
+    <h6 class="display-4">Hello, {{ user }}!</h6>
 
-    <b><i>"{{ setup }}"</i></b><br>
-    {{ punchline }}<br><br>
+    <p class="lead">
+        It has been <b><i>{{ last_update }}</i></b> since your last update on Cook Scheduler.
+        Among the <b><i>{{ num_days }} days</i></b> you stayed with us,
+        you paired up with <b><i>{{ partner }}</i></b> the most, and cooked <b>{{ num_meal }} meals </b>for
+        you and others.<br>
+    </p>
+    <br>
+
+
+    <blockquote class="blockquote text-center">
+        <b><i>{{ setup }}</i></b><br>
+        {{ punchline }}<br><br>
+    </blockquote>
+
 
     <h5>
         <a href="{% url "cookschedule:change_password" %}" style="color:black"><u>Change password</u></a> |

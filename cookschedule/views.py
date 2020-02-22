@@ -169,5 +169,49 @@ def change_password(request):
 @login_required(login_url=reverse_lazy('cookschedule:login'))
 def user_stat(request):
 
-    context = {'user': request.user, 'setup': "joke setup needs to be longer than one line.longer longer and longer and longer", 'punchline': "this is the punchline"}
+    joke = get_joke()
+    context = {'user': request.user,
+               'setup': joke['setup'], 'punchline': joke['punchline']}
+
+    # time of the first update in changelog
+    if ChangeLog.objects.count() == 0:
+        first_update = datetime.now()
+    else:
+        first_update = ChangeLog.objects.all()[0].update_time
+
+    # time of request.user's last update
+    user_updates = ChangeLog.objects.filter(user=request.user.username)
+    if user_updates.count() == 0:
+        user_last_update = datetime.now()
+    else:
+        user_last_update = user_updates.order_by('-update_time')[0].update_time
+
+    # the time elapse since last update by request.user
+    update_timedelta = datetime.now() - user_last_update
+    update_time = str(update_timedelta.seconds // 3600) + " hours"
+    if update_timedelta.days > 0:
+        update_time = str(update_timedelta.days) + " days and " + update_time
+    context['last_update'] = update_time
+
+    # number of days since first update ever
+    context['num_days'] = (datetime.now() - first_update).days
+
+    # get the partner that cooks with request.user most frequently, and the
+    # number of meals this user cooked.
+    partner_count = dict()
+    num_meal = 0
+    for schedule in history():
+        cooks = schedule.cooks()
+        if request.user in cooks:
+            num_meal += 1
+            for cook in cooks:
+                if cook != request.user:
+                    partner_count[cook] = partner_count.get(cook, 0) + 1
+    if len(partner_count) == 0:
+        partner = "yourself"
+    else:
+        partner, _ = max(partner_count.items(), key=lambda kv: kv[1])
+    context['partner'] = partner
+    context['num_meal'] = num_meal
+
     return render(request, 'cookschedule/user_stat.html', context)
