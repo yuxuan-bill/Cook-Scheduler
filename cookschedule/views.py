@@ -135,6 +135,7 @@ def logout(request):
 @login_required(login_url=reverse_lazy('cookschedule:login'))
 def change_password(request):
 
+    # submit a change_password request
     if request.POST:
         user = authenticate(username=request.user.username,
                             password=request.POST['original'])
@@ -162,6 +163,7 @@ def change_password(request):
             return redirect('cookschedule:change_password')
         return redirect('cookschedule:index')
 
+    # visiting the change password page
     return render(request, 'cookschedule/change_password.html',
                   {'user': request.user.username})
 
@@ -197,7 +199,9 @@ def user_stat(request):
     context['num_days'] = (datetime.now() - first_update).days
 
     # get the partner that cooks with request.user most frequently, and the
-    # number of meals this user cooked.
+    # number of meals this user cooked. If the user is an admin account,
+    # information would not display correctly, since admin never participated
+    # in any cooking activities.
     partner_count = dict()
     num_meal = 0
     for schedule in history():
