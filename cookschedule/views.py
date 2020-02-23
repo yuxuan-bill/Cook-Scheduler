@@ -212,7 +212,6 @@ def user_stat(request):
         if request.user.first_name in cooks:
             num_meal += 1
             for cook in cooks:
-                print(cook, flush=True)
                 if cook != request.user.first_name:
                     partner_count[cook] = partner_count.get(cook, 0) + 1
     if len(partner_count) == 0:
