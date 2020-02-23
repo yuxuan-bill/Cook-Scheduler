@@ -206,10 +206,14 @@ def user_stat(request):
     num_meal = 0
     for schedule in history():
         cooks = schedule.cooks()
-        if request.user in cooks:
+        # use user first_name to identify participants,
+        # eg. user daniel may have username cuocuo, but we use his first name
+        # Daniel to search for meals he cooked
+        if request.user.first_name in cooks:
             num_meal += 1
             for cook in cooks:
-                if cook != request.user:
+                print(cook, flush=True)
+                if cook != request.user.first_name:
                     partner_count[cook] = partner_count.get(cook, 0) + 1
     if len(partner_count) == 0:
         partner = "yourself"
