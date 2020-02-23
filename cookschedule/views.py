@@ -219,3 +219,27 @@ def user_stat(request):
     context['num_meal'] = num_meal
 
     return render(request, 'cookschedule/user_stat.html', context)
+
+
+# TODO: implement public_cart and personal_cart front/back end functionality
+# A user friendly shopping cart requires working knowledgge of js and I don't
+# have time for that.
+# One other problem is that shopping cart would be unusable out of campus
+# because of IP issues.
+@login_required(login_url=reverse_lazy('cookschedule:login'))
+def public_cart(request):
+    # temporary solution is to have just a text box. Data is stored in
+    # notes.temp to avoid database overhead.
+
+    if request.POST:  # save notes
+        with open("notes.temp", 'w') as f:
+            f.write(request.POST['notes'])
+
+    with open("notes.temp") as f:
+        notes = f.read()
+    return render(request, 'cookschedule/public_cart.html', {'notes': notes})
+
+
+@login_required(login_url=reverse_lazy('cookschedule:login'))
+def personal_cart(request):
+    return render(request, 'cookschedule/personal_cart.html')
